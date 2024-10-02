@@ -10,43 +10,43 @@ using Twilio.Jwt.AccessToken;
 
 namespace SDKQuickstart.Controllers
 {
-    public class TokenController : Controller
-    {
+	public class TokenController : Controller
+	{
 
-        private readonly TwilioAccountDetails _twilioAccountDetails;
+		private readonly TwilioAccountDetails _twilioAccountDetails;
 
-        public TokenController(IOptions<TwilioAccountDetails> twilioAccountDetails)
-        {
-            _twilioAccountDetails = twilioAccountDetails.Value ?? throw new ArgumentException(nameof(twilioAccountDetails));
-        }
+		public TokenController(IOptions<TwilioAccountDetails> twilioAccountDetails)
+		{
+			_twilioAccountDetails = twilioAccountDetails.Value ?? throw new ArgumentException(nameof(twilioAccountDetails));
+		}
 
-        // GET: /token
-        [HttpGet]
-        public IActionResult Index()
-        {
+		// GET: /token
+		[HttpGet]
+		public IActionResult Index()
+		{
 
-            var identity = Internet.UserName().AlphanumericOnly();
-            Device.Identity = identity;
+			var identity = Internet.UserName().AlphanumericOnly();
+			Device.Identity = identity;
 
-            var grant = new VoiceGrant();
-            grant.OutgoingApplicationSid = _twilioAccountDetails.TwimlAppSid;
-            grant.IncomingAllow = true;
+			var grant = new VoiceGrant();
+			grant.OutgoingApplicationSid = _twilioAccountDetails.TwimlAppSid;
+			grant.IncomingAllow = true;
 
-            var grants = new HashSet<IGrant>
-            {
-                { grant }
-            };
+			var grants = new HashSet<IGrant>
+						{
+								{ grant }
+						};
 
-            var token = new Token(
-                _twilioAccountDetails.AccountSid,
-                _twilioAccountDetails.ApiSid,
-                _twilioAccountDetails.ApiSecret,
-                identity,
-                grants: grants).ToJwt();
+			var token = new Token(
+					_twilioAccountDetails.AccountSid,
+					_twilioAccountDetails.ApiSid,
+					_twilioAccountDetails.ApiSecret,
+					identity,
+					grants: grants).ToJwt();
 
 
 
-            return Json(new { identity, token });
-        }
-    }
+			return Json(new { identity, token });
+		}
+	}
 }
