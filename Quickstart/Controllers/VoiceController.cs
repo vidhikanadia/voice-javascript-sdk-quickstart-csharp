@@ -11,14 +11,22 @@ namespace Quickstart.Controllers
 {
 	public class VoiceController : Controller
 	{
-
+		#region fields
 		private readonly TwilioAccountDetails _twilioAccountDetails;
+		#endregion
 
+		#region properties
+		public VoiceResponse twiml { get; set; } = new VoiceResponse();
+		#endregion
+
+		#region constructor
 		public VoiceController(IOptions<TwilioAccountDetails> twilioAccountDetails)
 		{
 			_twilioAccountDetails = twilioAccountDetails.Value ?? throw new ArgumentException(nameof(twilioAccountDetails));
 		}
+		#endregion
 
+		#region methods
 		// POST: /voice
 		[HttpPost]
 		public IActionResult Index(string to, string callingDeviceIdentity)
@@ -76,5 +84,6 @@ namespace Quickstart.Controllers
 
 			return Content(twiml.ToString(), "text/xml");
 		}
+		#endregion
 	}
 }
