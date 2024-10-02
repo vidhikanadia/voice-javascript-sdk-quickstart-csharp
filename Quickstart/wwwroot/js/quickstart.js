@@ -23,6 +23,7 @@
 	const phoneNumberInput = document.getElementById("phone-number");
 	const incomingPhoneNumberEl = document.getElementById("incoming-number");
 	const startupButton = document.getElementById("startup-button");
+	const muteButton = document.getElementById("button-mute-unmute");
 
 	let device;
 	let token;
@@ -121,6 +122,17 @@
 			call.on("disconnect", updateUIDisconnectedOutgoingCall);
 			call.on("cancel", updateUIDisconnectedOutgoingCall);
 
+			muteButton.onclick = () => {
+				if (call.isMuted()) {
+					call.mute(false);
+					log("Unmuted call...");
+				}
+				else {
+					call.mute(true);
+					log("Muted call...");
+				}
+			}
+
 			outgoingCallHangupButton.onclick = () => {
 				log("Hanging up ...");
 				call.disconnect();
@@ -136,6 +148,7 @@
 		callButton.disabled = true;
 		outgoingCallHangupButton.classList.remove("hide");
 		volumeIndicators.classList.remove("hide");
+		muteButton.classList.add("hide");
 		bindVolumeIndicators(call);
 	}
 
@@ -144,6 +157,7 @@
 		callButton.disabled = false;
 		outgoingCallHangupButton.classList.add("hide");
 		volumeIndicators.classList.add("hide");
+		muteButton.classList.add("hide");
 	}
 
 
@@ -185,6 +199,7 @@
 		incomingCallAcceptButton.classList.add("hide");
 		incomingCallRejectButton.classList.add("hide");
 		incomingCallHangupButton.classList.remove("hide");
+		muteButton.classList.remove("hide");
 	}
 
 	// REJECT INCOMING CALL
@@ -229,6 +244,7 @@
 		incomingCallRejectButton.classList.remove("hide");
 		incomingCallHangupButton.classList.add("hide");
 		incomingCallDiv.classList.add("hide");
+		muteButton.classList.add("hide");
 	}
 
 	// AUDIO CONTROLS
