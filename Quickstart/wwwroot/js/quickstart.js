@@ -148,7 +148,7 @@
 		callButton.disabled = true;
 		outgoingCallHangupButton.classList.remove("hide");
 		volumeIndicators.classList.remove("hide");
-		muteButton.classList.add("hide");
+		muteButton.classList.remove("hide");
 		bindVolumeIndicators(call);
 	}
 
