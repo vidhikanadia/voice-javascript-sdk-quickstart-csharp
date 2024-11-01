@@ -6,6 +6,9 @@ using Quickstart.Models;
 using Twilio.TwiML;
 using Twilio.TwiML.Voice;
 using System.Text.RegularExpressions;
+using Twilio.Rest.Api.V2010.Account;
+using Twilio.Types;
+using Twilio;
 
 namespace Quickstart.Controllers
 {
@@ -33,15 +36,13 @@ namespace Quickstart.Controllers
 		{
 			var callerId = _twilioAccountDetails.CallerId;
 
-			var twiml = new VoiceResponse();
-
 			Console.WriteLine($"to: {to}, callingDeviceIdentity: {callingDeviceIdentity}, thisDevice.Identity: {Device.Identity}");
 
 			// someone calls into my Twilio Number, there is no thisDeviceIdentity passed to the /voice endpoint 
 			if (string.IsNullOrEmpty(callingDeviceIdentity))
 			{
 				var dial = new Dial();
-				var client = new Client();
+				var client = new Twilio.TwiML.Voice.Client();
 				client.Identity(Device.Identity);
 				dial.Append(client);
 				twiml.Append(dial);
@@ -49,7 +50,7 @@ namespace Quickstart.Controllers
 			else if (callingDeviceIdentity != Device.Identity)
 			{
 				var dial = new Dial();
-				var client = new Client();
+				var client = new Twilio.TwiML.Voice.Client();
 				client.Identity(Device.Identity);
 				dial.Append(client);
 				twiml.Append(dial);
@@ -58,7 +59,7 @@ namespace Quickstart.Controllers
 			// make an outgoing call to either another client or a number
 			else
 			{
-				var dial = new Dial(callerId: callerId);
+				var dial = new Dial(callerId: callerId); //for recoding: record: Dial.RecordEnum.RecordFromAnswer
 
 				// check if the 'To' property in the POST request is
 				// a client name or a phone number
@@ -71,16 +72,34 @@ namespace Quickstart.Controllers
 				}
 				else
 				{
-					var client = new Client();
+					var client = new Twilio.TwiML.Voice.Client();
 					client.Identity(to);
 					dial.Append(client);
 
 				}
-
 				twiml.Append(dial);
 			}
 
 			Console.WriteLine(twiml.ToString());
+
+			return Content(twiml.ToString(), "text/xml");
+		}
+
+		[HttpPost("voice/placeonhold")]
+		public IActionResult PlaceCallOnHold([FromBody] CallData requestData)
+		{
+			string callSid = requestData.CallSid;
+
+			TwilioClient.Init(_twilioAccountDetails.AccountSid, _twilioAccountDetails.AuthToken);
+
+			//var twiml = new VoiceResponse();
+			var enqueue = new Enqueue("support", waitUrl: new Uri("http://com.twilio.sounds.music.s3.amazonaws.com/MARKOVICHAMP-Borghestral.mp3"));
+			twiml.Append(enqueue);
+
+			var call = CallResource.Update(
+					twiml: new Twiml(twiml.ToString()),
+					pathSid: callSid
+			);
 
 			return Content(twiml.ToString(), "text/xml");
 		}

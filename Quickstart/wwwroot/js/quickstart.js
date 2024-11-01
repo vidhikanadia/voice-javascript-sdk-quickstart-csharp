@@ -24,10 +24,12 @@
 	const incomingPhoneNumberEl = document.getElementById("incoming-number");
 	const startupButton = document.getElementById("startup-button");
 	const muteButton = document.getElementById("button-mute-unmute");
+	const placeOnHoldButton = document.getElementById("place-on-hold-button");
 
 	let device;
 	let token;
 	let callingDeviceIdentity;
+	let currentCallSid;
 
 	// Event Listeners
 
@@ -38,6 +40,23 @@
 	getAudioDevicesButton.onclick = getAudioDevices;
 	speakerDevices.addEventListener("change", updateOutputDevice);
 	ringtoneDevices.addEventListener("change", updateRingtoneDevice);
+
+	placeOnHoldButton.addEventListener('click', function () {
+		fetch('/voice/placeonhold', {
+			method: 'POST',
+			headers: {
+				'content-type': 'application/json',
+			},
+			body: JSON.stringify({ callSid: currentCallSid })
+		})
+			.then(res => res.text())
+			.then(data => {
+				log("Call placed on hold...", data);
+			})
+			.catch((error) => {
+				log("Error occurred: ", error);
+			});
+	});
 
 	// SETUP STEP 1:
 	// Browser client should be started after a user gesture
@@ -116,9 +135,11 @@
 			// Twilio.Device.connect() returns a Call object
 			const call = await device.connect({ params });
 
-			// add listeners to the Call
-			// "accepted" means the call has finished connecting and the state is now "open"
-			call.on("accept", updateUIAcceptedOutgoingCall);
+			call.on('accept', function () {
+				currentCallSid = call.parameters.CallSid || call.sid;
+				log("Call Parameters: " + JSON.stringify(call.parameters));
+				updateUIAcceptedOutgoingCall();
+			});
 			call.on("disconnect", updateUIDisconnectedOutgoingCall);
 			call.on("cancel", updateUIDisconnectedOutgoingCall);
 
@@ -126,6 +147,7 @@
 				if (call.isMuted()) {
 					call.mute(false);
 					log("Unmuted call...");
+					log("Call Object: ", call.parameters);
 				}
 				else {
 					call.mute(true);
@@ -149,6 +171,7 @@
 		outgoingCallHangupButton.classList.remove("hide");
 		volumeIndicators.classList.remove("hide");
 		muteButton.classList.remove("hide");
+		placeOnHoldButton.classList.remove("hide");
 		bindVolumeIndicators(call);
 	}
 
@@ -158,6 +181,7 @@
 		outgoingCallHangupButton.classList.add("hide");
 		volumeIndicators.classList.add("hide");
 		muteButton.classList.add("hide");
+		placeOnHoldButton.classList.add("hide");
 	}
 
 
@@ -199,6 +223,7 @@
 		incomingCallAcceptButton.classList.add("hide");
 		incomingCallRejectButton.classList.add("hide");
 		incomingCallHangupButton.classList.remove("hide");
+		muteButton.classList.remove("hide");
 		muteButton.classList.remove("hide");
 	}
 
@@ -245,6 +270,7 @@
 		incomingCallHangupButton.classList.add("hide");
 		incomingCallDiv.classList.add("hide");
 		muteButton.classList.add("hide");
+		placeOnHoldButton.add("hide");
 	}
 
 	// AUDIO CONTROLS
